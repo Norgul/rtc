@@ -26,6 +26,7 @@ export class FilterManager {
         blur: HTMLInputElement;
         invert: HTMLInputElement;
     };
+    private blurRadiusSlider!: HTMLInputElement;
 
     // Using temp canvas so we can make filters additive
     private tempCanvas: HTMLCanvasElement;
@@ -60,6 +61,14 @@ export class FilterManager {
             blur: document.getElementById('blurIntensity') as HTMLInputElement,
             invert: document.getElementById('invertIntensity') as HTMLInputElement
         };
+
+        this.blurRadiusSlider = document.getElementById('blurRadius') as HTMLInputElement;
+        this.blurRadiusSlider.addEventListener('input', () => {
+            if (this.filters.blur) {
+                const radius = parseInt(this.blurRadiusSlider.value);
+                this.filters.blur = new BlurFilter(this.tempContext, this.width, this.height, radius);
+            }
+        });
     }
 
     public applyFilters(): void {
@@ -71,7 +80,14 @@ export class FilterManager {
             if (filter) {
                 const intensity = parseInt(this.intensitySliders[filterType as FilterType].value) / 100;
                 if (intensity > 0) {
-                    filter.apply(intensity);
+                    if (filterType === 'blur') {
+                        (filter as BlurFilter).updateSource(this.tempCanvas);
+                        (filter as BlurFilter).apply(intensity);
+                        // Copy the blurred result back to the temp canvas
+                        this.tempContext.drawImage((filter as BlurFilter).getOutputCanvas(), 0, 0);
+                    } else {
+                        filter.apply(intensity);
+                    }
                 }
             }
         });
