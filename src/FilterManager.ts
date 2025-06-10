@@ -45,6 +45,7 @@ export class FilterManager {
 
         this.initializeFilters();
         this.initializeIntensitySliders();
+        this.enableAllButtons()
     }
 
     private initializeFilters(): void {
@@ -77,17 +78,19 @@ export class FilterManager {
 
         // Apply each filter based on its intensity
         Object.entries(this.filters).forEach(([filterType, filter]) => {
-            if (filter) {
-                const intensity = parseInt(this.intensitySliders[filterType as FilterType].value) / 100;
-                if (intensity > 0) {
-                    if (filterType === 'blur') {
-                        (filter as BlurFilter).updateSource(this.tempCanvas);
-                        (filter as BlurFilter).apply(intensity);
-                        // Copy the blurred result back to the temp canvas
-                        this.tempContext.drawImage((filter as BlurFilter).getOutputCanvas(), 0, 0);
-                    } else {
-                        filter.apply(intensity);
-                    }
+            if (!filter) {
+                return;
+            }
+
+            const intensity = parseInt(this.intensitySliders[filterType as FilterType].value) / 100;
+            if (intensity > 0) {
+                if (filterType === 'blur') {
+                    (filter as BlurFilter).updateSource(this.tempCanvas);
+                    (filter as BlurFilter).apply(intensity);
+                    // Copy the blurred result back to the temp canvas
+                    this.tempContext.drawImage((filter as BlurFilter).getOutputCanvas(), 0, 0);
+                } else {
+                    filter.apply(intensity);
                 }
             }
         });
@@ -100,28 +103,5 @@ export class FilterManager {
         Object.values(this.intensitySliders).forEach(slider => {
             slider.disabled = false;
         });
-    }
-
-    public disableAllButtons(): void {
-        Object.values(this.intensitySliders).forEach(slider => {
-            slider.disabled = true;
-        });
-    }
-
-    public clearFilters(): void {
-        Object.values(this.intensitySliders).forEach(slider => {
-            slider.value = '0';
-        });
-    }
-
-    public destroy(): void {
-        this.clearFilters();
-        this.disableAllButtons();
-        this.filters = {
-            grayscale: null,
-            sepia: null,
-            blur: null,
-            invert: null
-        };
     }
 }

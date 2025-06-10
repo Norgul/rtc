@@ -32,33 +32,36 @@ class CameraController {
                     this.canvasElement.height
                 );
 
-                this.filterManager.enableAllButtons();
                 this.startVideoProcessing();
             };
         } catch (error) {
             console.error('Error accessing camera:', error);
 
-            let errorMessage = 'Error accessing camera. ';
-            if (error instanceof DOMException) {
-                switch (error.name) {
-                    case 'NotAllowedError':
-                        errorMessage += 'Camera access was denied. Please grant camera permissions and try again.';
-                        break;
-                    case 'NotFoundError':
-                        errorMessage += 'No camera device found. Please connect a camera and try again.';
-                        break;
-                    case 'NotReadableError':
-                        errorMessage += 'Camera is already in use by another application. Please close other applications using the camera and try again.';
-                        break;
-                    default:
-                        errorMessage += 'Please make sure you have granted camera permissions.';
-                }
-            }
-
-            if (confirm(errorMessage + '\n\nWould you like to try again?')) {
+            if (await this.handleCameraError(error)) {
                 await this.startCamera();
             }
         }
+    }
+
+    private async handleCameraError(error: unknown): Promise<boolean> {
+        let errorMessage = 'Error accessing camera. ';
+        if (error instanceof DOMException) {
+            switch (error.name) {
+                case 'NotAllowedError':
+                    errorMessage += 'Camera access was denied. Please grant camera permissions and try again.';
+                    break;
+                case 'NotFoundError':
+                    errorMessage += 'No camera device found. Please connect a camera and try again.';
+                    break;
+                case 'NotReadableError':
+                    errorMessage += 'Camera is already in use by another application. Please close other applications using the camera and try again.';
+                    break;
+                default:
+                    errorMessage += 'Please make sure you have granted camera permissions.';
+            }
+        }
+
+        return confirm(errorMessage + '\n\nWould you like to try again?');
     }
 
     private startVideoProcessing(): void {
