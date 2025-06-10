@@ -22,7 +22,7 @@ export class BlurFilter {
         this.canvas = document.createElement('canvas');
         this.canvas.width = width;
         this.canvas.height = height;
-        this.gl = this.canvas.getContext('webgl', { preserveDrawingBuffer: true })!;
+        this.gl = this.canvas.getContext('webgl', {preserveDrawingBuffer: true})!;
 
         // Create output canvas
         this.outputCanvas = document.createElement('canvas');
@@ -123,9 +123,9 @@ export class BlurFilter {
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer);
         this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array([
             -1.0, -1.0,
-             1.0, -1.0,
-            -1.0,  1.0,
-             1.0,  1.0,
+            1.0, -1.0,
+            -1.0, 1.0,
+            1.0, 1.0,
         ]), this.gl.STATIC_DRAW);
         return buffer;
     }
@@ -145,7 +145,7 @@ export class BlurFilter {
     private createTexture(): WebGLTexture {
         const texture = this.gl.createTexture()!;
         this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
-        
+
         // Create an empty texture with the correct dimensions
         this.gl.texImage2D(
             this.gl.TEXTURE_2D,
@@ -251,4 +251,21 @@ export class BlurFilter {
     public getOutputCanvas(): HTMLCanvasElement {
         return this.outputCanvas;
     }
-} 
+
+    public dispose(): void {
+        if (!this.gl) {
+            return;
+        }
+
+        this.gl.deleteTexture(this.texture);
+        this.gl.deleteTexture(this.tempTexture);
+        this.gl.deleteBuffer(this.vertexBuffer);
+        this.gl.deleteBuffer(this.textureCoordBuffer);
+        this.gl.deleteFramebuffer(this.framebuffer);
+        this.gl.deleteProgram(this.program);
+        this.canvas.width = 1;
+        this.canvas.height = 1;
+        this.outputCanvas.width = 1;
+        this.outputCanvas.height = 1;
+    }
+}

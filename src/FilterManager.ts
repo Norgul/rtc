@@ -45,7 +45,7 @@ export class FilterManager {
 
         this.initializeFilters();
         this.initializeIntensitySliders();
-        this.enableAllButtons()
+        this.enableAllButtons();
     }
 
     private initializeFilters(): void {
@@ -67,6 +67,8 @@ export class FilterManager {
         this.blurRadiusSlider.addEventListener('input', () => {
             if (this.filters.blur) {
                 const radius = parseInt(this.blurRadiusSlider.value);
+                // Dispose of old blur filter before creating new one
+                this.filters.blur.dispose();
                 this.filters.blur = new BlurFilter(this.tempContext, this.width, this.height, radius);
             }
         });
@@ -103,5 +105,28 @@ export class FilterManager {
         Object.values(this.intensitySliders).forEach(slider => {
             slider.disabled = false;
         });
+    }
+
+    public dispose(): void {
+        Object.values(this.filters).forEach(filter => {
+            if (filter && 'dispose' in filter) {
+                (filter as any).dispose();
+            }
+        });
+
+        this.filters = {
+            grayscale: null,
+            sepia: null,
+            blur: null,
+            invert: null
+        };
+
+        this.tempCanvas.width = 1;
+        this.tempCanvas.height = 1;
+        this.tempContext.clearRect(0, 0, 1, 1);
+
+        if (this.blurRadiusSlider) {
+            this.blurRadiusSlider.removeEventListener('input', () => {});
+        }
     }
 }

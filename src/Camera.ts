@@ -6,6 +6,8 @@ class CameraController {
     private canvasContext: CanvasRenderingContext2D;
     private filterManager: FilterManager | null = null;
     private captureButton: HTMLButtonElement;
+    private isProcessing: boolean = false;
+    private animationFrameId: number | null = null;
 
     constructor() {
         this.videoElement = document.getElementById('videoElement') as HTMLVideoElement;
@@ -17,9 +19,14 @@ class CameraController {
         this.captureButton.addEventListener('click', () => this.capturePhoto());
 
         this.startCamera();
+
+        window.addEventListener('beforeunload', () => this.dispose());
     }
 
     private capturePhoto(): void {
+        if (this.isProcessing) return;
+        this.isProcessing = true;
+
         const tempCanvas = document.createElement('canvas');
         tempCanvas.width = this.canvasElement.width;
         tempCanvas.height = this.canvasElement.height;
@@ -30,6 +37,7 @@ class CameraController {
         tempCanvas.toBlob((blob) => {
             if (!blob) {
                 console.error('Failed to create image blob');
+                this.isProcessing = false;
                 return;
             }
 
@@ -43,6 +51,7 @@ class CameraController {
             document.body.removeChild(link);
 
             URL.revokeObjectURL(url);
+            this.isProcessing = false;
         }, 'image/png');
     }
 
@@ -99,16 +108,42 @@ class CameraController {
 
     private startVideoProcessing(): void {
         const processFrame = () => {
-            this.canvasContext.drawImage(this.videoElement, 0, 0);
+            if (!this.isProcessing) {
+                this.canvasContext.drawImage(this.videoElement, 0, 0);
 
-            if (this.filterManager) {
-                this.filterManager.applyFilters();
+                if (this.filterManager) {
+                    this.filterManager.applyFilters();
+                }
             }
 
-            requestAnimationFrame(processFrame);
+            this.animationFrameId = requestAnimationFrame(processFrame);
         };
 
         processFrame();
+    }
+
+    public dispose(): void {
+        if (this.animationFrameId !== null) {
+            cancelAnimationFrame(this.animationFrameId);
+            this.animationFrameId = null;
+        }
+
+        if (this.videoElement.srcObject) {
+            const stream = this.videoElement.srcObject as MediaStream;
+            stream.getTracks().forEach(track => track.stop());
+            this.videoElement.srcObject = null;
+        }
+
+        if (this.filterManager) {
+            this.filterManager.dispose();
+            this.filterManager = null;
+        }
+
+        this.canvasContext.clearRect(0, 0, this.canvasElement.width, this.canvasElement.height);
+        this.canvasElement.width = 1;
+        this.canvasElement.height = 1;
+
+        this.captureButton.removeEventListener('click', () => this.capturePhoto());
     }
 }
 
