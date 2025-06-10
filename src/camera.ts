@@ -1,20 +1,26 @@
 class CameraController {
     private videoElement: HTMLVideoElement;
-    private startButton: HTMLButtonElement;
-    private stopButton: HTMLButtonElement;
+    private toggleButton: HTMLButtonElement;
     private stream: MediaStream | null = null;
+    private isCameraActive: boolean = false;
 
     constructor() {
         this.videoElement = document.getElementById('videoElement') as HTMLVideoElement;
-        this.startButton = document.getElementById('startButton') as HTMLButtonElement;
-        this.stopButton = document.getElementById('stopButton') as HTMLButtonElement;
+        this.toggleButton = document.getElementById('toggleButton') as HTMLButtonElement;
 
         this.initializeEventListeners();
     }
 
     private initializeEventListeners(): void {
-        this.startButton.addEventListener('click', () => this.startCamera());
-        this.stopButton.addEventListener('click', () => this.stopCamera());
+        this.toggleButton.addEventListener('click', () => this.toggleCamera());
+    }
+
+    private async toggleCamera(): Promise<void> {
+        if (this.isCameraActive) {
+            this.stopCamera();
+        } else {
+            await this.startCamera();
+        }
     }
 
     private async startCamera(): Promise<void> {
@@ -27,8 +33,8 @@ class CameraController {
             });
 
             this.videoElement.srcObject = this.stream;
-            this.startButton.disabled = true;
-            this.stopButton.disabled = false;
+            this.isCameraActive = true;
+            this.toggleButton.textContent = 'Stop Camera';
         } catch (error) {
             console.error('Error accessing camera:', error);
             alert('Error accessing camera. Please make sure you have granted camera permissions.');
@@ -40,8 +46,8 @@ class CameraController {
             this.stream.getTracks().forEach(track => track.stop());
             this.videoElement.srcObject = null;
             this.stream = null;
-            this.startButton.disabled = false;
-            this.stopButton.disabled = true;
+            this.isCameraActive = false;
+            this.toggleButton.textContent = 'Start Camera';
         }
     }
 }
