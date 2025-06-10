@@ -1,43 +1,32 @@
-import {GrayscaleFilter} from './filters/grayscale';
+import {FilterManager} from './FilterManager';
 
 class CameraController {
     private videoElement: HTMLVideoElement;
     private canvasElement: HTMLCanvasElement;
     private canvasContext: CanvasRenderingContext2D;
     private toggleButton: HTMLButtonElement;
-    private grayscaleButton: HTMLButtonElement;
     private stream: MediaStream | null = null;
     private isCameraActive: boolean = false;
-    private isGrayscaleEnabled: boolean = false;
     private animationFrameId: number | null = null;
-    private grayscaleFilter: GrayscaleFilter | null = null;
+    private filterManager: FilterManager | null = null;
 
     constructor() {
         this.videoElement = document.getElementById('videoElement') as HTMLVideoElement;
-
         this.canvasElement = document.getElementById('canvasElement') as HTMLCanvasElement;
-        this.canvasContext = this.canvasElement.getContext('2d')!;
-
+        this.canvasContext = this.canvasElement.getContext('2d', {willReadFrequently: true})!;
         this.toggleButton = document.getElementById('toggleButton') as HTMLButtonElement;
-        this.grayscaleButton = document.getElementById('grayscaleButton') as HTMLButtonElement;
-
         this.initializeEventListeners();
     }
 
     private initializeEventListeners(): void {
         this.toggleButton.addEventListener('click', () => this.toggleCamera());
-        this.grayscaleButton.addEventListener('click', () => this.toggleGrayscale());
     }
 
     private async toggleCamera(): Promise<void> {
         if (this.isCameraActive) {
             this.stopCamera();
-            this.grayscaleButton.disabled = true;
-            this.isGrayscaleEnabled = false;
-            this.grayscaleButton.textContent = 'Enable Grayscale';
         } else {
             await this.startCamera();
-            this.grayscaleButton.disabled = false;
         }
 
         this.isCameraActive = !this.isCameraActive;
@@ -59,12 +48,13 @@ class CameraController {
                 this.canvasElement.width = this.videoElement.videoWidth;
                 this.canvasElement.height = this.videoElement.videoHeight;
 
-                this.grayscaleFilter = new GrayscaleFilter(
+                this.filterManager = new FilterManager(
                     this.canvasContext,
                     this.canvasElement.width,
                     this.canvasElement.height
                 );
 
+                this.filterManager.enableAllButtons();
                 this.startVideoProcessing();
             };
         } catch (error) {
@@ -78,7 +68,11 @@ class CameraController {
             this.stream.getTracks().forEach(track => track.stop());
             this.videoElement.srcObject = null;
             this.stream = null;
-            this.grayscaleFilter = null;
+
+            if (this.filterManager) {
+                this.filterManager.destroy();
+                this.filterManager = null;
+            }
 
             if (this.animationFrameId) {
                 cancelAnimationFrame(this.animationFrameId);
@@ -87,20 +81,14 @@ class CameraController {
         }
     }
 
-    private toggleGrayscale(): void {
-        this.isGrayscaleEnabled = !this.isGrayscaleEnabled;
-        this.grayscaleButton.textContent = this.isGrayscaleEnabled ? 'Disable Grayscale' : 'Enable Grayscale';
-    }
-
     private startVideoProcessing(): void {
         const processFrame = () => {
             if (!this.isCameraActive) return;
 
-            // Draw the video frame to the canvas
             this.canvasContext.drawImage(this.videoElement, 0, 0);
 
-            if (this.isGrayscaleEnabled && this.grayscaleFilter) {
-                this.grayscaleFilter.apply();
+            if (this.filterManager) {
+                this.filterManager.applyFilters();
             }
 
             this.animationFrameId = requestAnimationFrame(processFrame);
