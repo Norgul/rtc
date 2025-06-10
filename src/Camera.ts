@@ -6,8 +6,12 @@ class CameraController {
     private canvasContext: CanvasRenderingContext2D;
     private filterManager: FilterManager | null = null;
     private captureButton: HTMLButtonElement;
+    private recordButton: HTMLButtonElement;
     private isProcessing: boolean = false;
     private animationFrameId: number | null = null;
+    private mediaRecorder: MediaRecorder | null = null;
+    private recordedChunks: Blob[] = [];
+    private isRecording: boolean = false;
 
     constructor() {
         this.videoElement = document.getElementById('videoElement') as HTMLVideoElement;
@@ -16,7 +20,10 @@ class CameraController {
         this.canvasContext = this.canvasElement.getContext('2d', {willReadFrequently: true})!;
 
         this.captureButton = document.getElementById('captureButton') as HTMLButtonElement;
+        this.recordButton = document.getElementById('recordButton') as HTMLButtonElement;
+
         this.captureButton.addEventListener('click', () => this.capturePhoto());
+        this.recordButton.addEventListener('click', () => this.toggleRecording());
 
         this.startCamera();
 
@@ -53,6 +60,58 @@ class CameraController {
             URL.revokeObjectURL(url);
             this.isProcessing = false;
         }, 'image/png');
+    }
+
+    private toggleRecording(): void {
+        if (this.isRecording) {
+            this.stopRecording();
+        } else {
+            this.startRecording();
+        }
+    }
+
+    private startRecording(): void {
+        if (!this.videoElement.srcObject) return;
+
+        const canvasStream = this.canvasElement.captureStream(30);
+        this.mediaRecorder = new MediaRecorder(canvasStream, {
+            mimeType: 'video/webm;codecs=vp9'
+        });
+
+        this.recordedChunks = [];
+        this.mediaRecorder.ondataavailable = (event) => {
+            if (event.data.size > 0) {
+                this.recordedChunks.push(event.data);
+            }
+        };
+
+        this.mediaRecorder.onstop = () => {
+            const blob = new Blob(this.recordedChunks, {
+                type: 'video/webm'
+            });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `video_${new Date().toISOString().replace(/[:.]/g, '-')}.webm`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        };
+
+        this.mediaRecorder.start();
+        this.isRecording = true;
+        this.recordButton.textContent = 'Stop Recording';
+        this.recordButton.classList.add('recording');
+    }
+
+    private stopRecording(): void {
+        if (!this.mediaRecorder || !this.isRecording) return;
+
+        this.mediaRecorder.stop();
+        this.isRecording = false;
+        this.recordButton.textContent = 'Record Video';
+        this.recordButton.classList.remove('recording');
     }
 
     private async startCamera(): Promise<void> {
@@ -123,6 +182,10 @@ class CameraController {
     }
 
     public dispose(): void {
+        if (this.isRecording) {
+            this.stopRecording();
+        }
+
         if (this.animationFrameId !== null) {
             cancelAnimationFrame(this.animationFrameId);
             this.animationFrameId = null;
@@ -144,6 +207,7 @@ class CameraController {
         this.canvasElement.height = 1;
 
         this.captureButton.removeEventListener('click', () => this.capturePhoto());
+        this.recordButton.removeEventListener('click', () => this.toggleRecording());
     }
 }
 
