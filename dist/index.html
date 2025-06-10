@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebRTC Camera Access</title>
+  <script type="module" crossorigin src="./assets/index-Ci0ELrpn.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-CBhzh5a7.css">
+</head>
+<body>
+    <div class="container">
+        <h1>WebRTC Camera Access</h1>
+        <div class="video-container">
+            <video id="videoElement" autoplay style="display: none;"></video>
+            <canvas id="canvasElement"></canvas>
+        </div>
+        <div class="controls">
+            <div class="filters-wrapper">
+                <div class="intensity-container">
+                    <div class="intensity-option">
+                        <label for="grayscaleIntensity">Grayscale</label>
+                        <input type="range" id="grayscaleIntensity" min="0" max="100" value="0">
+                    </div>
+                    <div class="intensity-option">
+                        <label for="sepiaIntensity">Sepia</label>
+                        <input type="range" id="sepiaIntensity" min="0" max="100" value="0">
+                    </div>
+                    <div class="intensity-option">
+                        <label for="blurIntensity">Blur</label>
+                        <input type="range" id="blurIntensity" min="0" max="100" value="0">
+                    </div>
+                    <div class="intensity-option">
+                        <label for="blurRadius">Blur Radius</label>
+                        <input type="range" id="blurRadius" min="1" max="20" value="3">
+                    </div>
+                    <div class="intensity-option">
+                        <label for="invertIntensity">Invert</label>
+                        <input type="range" id="invertIntensity" min="0" max="100" value="0">
+                    </div>
+                </div>
+            </div>
+
+            <div class="button-container">
+                <button id="captureButton" class="action-button">Capture Photo</button>
+                <button id="recordButton" class="action-button">Record Video</button>
+            </div>
+
+        </div>
+    </div>
+</body>
+</html>
