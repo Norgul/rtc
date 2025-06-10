@@ -9,7 +9,6 @@ export class FilterManager {
     private canvasContext: CanvasRenderingContext2D;
     private width: number;
     private height: number;
-    private activeFilters: Set<FilterType> = new Set();
     private filters: {
         grayscale: GrayscaleFilter | null;
         sepia: SepiaFilter | null;
@@ -21,7 +20,7 @@ export class FilterManager {
         blur: null,
         invert: null
     };
-    private checkboxes!: {
+    private intensitySliders!: {
         grayscale: HTMLInputElement;
         sepia: HTMLInputElement;
         blur: HTMLInputElement;
@@ -44,8 +43,7 @@ export class FilterManager {
         this.tempContext = this.tempCanvas.getContext('2d')!;
 
         this.initializeFilters();
-        this.initializeCheckboxes();
-        this.initializeEventListeners();
+        this.initializeIntensitySliders();
     }
 
     private initializeFilters(): void {
@@ -55,61 +53,48 @@ export class FilterManager {
         this.filters.invert = new InvertFilter(this.tempContext, this.width, this.height);
     }
 
-    private initializeCheckboxes(): void {
-        this.checkboxes = {
-            grayscale: document.getElementById('grayscaleButton') as HTMLInputElement,
-            sepia: document.getElementById('sepiaButton') as HTMLInputElement,
-            blur: document.getElementById('blurButton') as HTMLInputElement,
-            invert: document.getElementById('invertButton') as HTMLInputElement
+    private initializeIntensitySliders(): void {
+        this.intensitySliders = {
+            grayscale: document.getElementById('grayscaleIntensity') as HTMLInputElement,
+            sepia: document.getElementById('sepiaIntensity') as HTMLInputElement,
+            blur: document.getElementById('blurIntensity') as HTMLInputElement,
+            invert: document.getElementById('invertIntensity') as HTMLInputElement
         };
     }
 
-    private initializeEventListeners(): void {
-        Object.keys(this.checkboxes).forEach(filterType => {
-            const checkbox = this.checkboxes[filterType as FilterType];
-            checkbox.addEventListener('change', () => {
-                if (checkbox.checked) {
-                    this.activeFilters.add(filterType as FilterType);
-                } else {
-                    this.activeFilters.delete(filterType as FilterType);
-                }
-            });
-        });
-    }
-
     public applyFilters(): void {
-        if (this.activeFilters.size === 0) {
-            return;
-        }
-
+        // Copy the current canvas state to the temp canvas
         this.tempContext.drawImage(this.canvasContext.canvas, 0, 0);
 
-        this.activeFilters.forEach(filterType => {
-            const filter = this.filters[filterType];
+        // Apply each filter based on its intensity
+        Object.entries(this.filters).forEach(([filterType, filter]) => {
             if (filter) {
-                filter.apply();
+                const intensity = parseInt(this.intensitySliders[filterType as FilterType].value) / 100;
+                if (intensity > 0) {
+                    filter.apply(intensity);
+                }
             }
         });
 
+        // Copy the final result back to the main canvas
         this.canvasContext.drawImage(this.tempCanvas, 0, 0);
     }
 
     public enableAllButtons(): void {
-        Object.values(this.checkboxes).forEach(checkbox => {
-            checkbox.disabled = false;
+        Object.values(this.intensitySliders).forEach(slider => {
+            slider.disabled = false;
         });
     }
 
     public disableAllButtons(): void {
-        Object.values(this.checkboxes).forEach(checkbox => {
-            checkbox.disabled = true;
+        Object.values(this.intensitySliders).forEach(slider => {
+            slider.disabled = true;
         });
     }
 
     public clearFilters(): void {
-        this.activeFilters.clear();
-        Object.values(this.checkboxes).forEach(checkbox => {
-            checkbox.checked = false;
+        Object.values(this.intensitySliders).forEach(slider => {
+            slider.value = '0';
         });
     }
 

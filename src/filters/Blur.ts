@@ -2,27 +2,28 @@ export class BlurFilter {
     private canvasContext: CanvasRenderingContext2D;
     private width: number;
     private height: number;
-    private radius: number;
+    private maxRadius: number;
 
-    constructor(canvasContext: CanvasRenderingContext2D, width: number, height: number, radius: number = 3) {
+    constructor(canvasContext: CanvasRenderingContext2D, width: number, height: number, maxRadius: number = 3) {
         this.canvasContext = canvasContext;
         this.width = width;
         this.height = height;
-        this.radius = radius;
+        this.maxRadius = maxRadius;
     }
 
-    public apply(): void {
+    public apply(intensity: number = 1): void {
         const imageData = this.canvasContext.getImageData(0, 0, this.width, this.height);
         const data = imageData.data;
         const tempData = new Uint8ClampedArray(data);
+        const radius = Math.floor(this.maxRadius * intensity);
 
         for (let y = 0; y < this.height; y++) {
             for (let x = 0; x < this.width; x++) {
                 let r = 0, g = 0, b = 0, a = 0;
                 let count = 0;
 
-                for (let ky = -this.radius; ky <= this.radius; ky++) {
-                    for (let kx = -this.radius; kx <= this.radius; kx++) {
+                for (let ky = -radius; ky <= radius; ky++) {
+                    for (let kx = -radius; kx <= radius; kx++) {
                         const posX = x + kx;
                         const posY = y + ky;
 

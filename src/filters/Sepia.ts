@@ -9,7 +9,7 @@ export class SepiaFilter {
         this.height = height;
     }
 
-    public apply(): void {
+    public apply(intensity: number = 1): void {
         const imageData = this.canvasContext.getImageData(0, 0, this.width, this.height);
         const data = imageData.data;
 
@@ -18,9 +18,13 @@ export class SepiaFilter {
             const g = data[i + 1];
             const b = data[i + 2];
 
-            data[i] = Math.min(255, (r * 0.393) + (g * 0.769) + (b * 0.189));
-            data[i + 1] = Math.min(255, (r * 0.349) + (g * 0.686) + (b * 0.168));
-            data[i + 2] = Math.min(255, (r * 0.272) + (g * 0.534) + (b * 0.131));
+            const sepiaR = Math.min(255, (r * 0.393) + (g * 0.769) + (b * 0.189));
+            const sepiaG = Math.min(255, (r * 0.349) + (g * 0.686) + (b * 0.168));
+            const sepiaB = Math.min(255, (r * 0.272) + (g * 0.534) + (b * 0.131));
+
+            data[i] = r * (1 - intensity) + sepiaR * intensity;
+            data[i + 1] = g * (1 - intensity) + sepiaG * intensity;
+            data[i + 2] = b * (1 - intensity) + sepiaB * intensity;
         }
 
         this.canvasContext.putImageData(imageData, 0, 0);
