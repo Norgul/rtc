@@ -14,8 +14,10 @@ class CameraController {
 
     constructor() {
         this.videoElement = document.getElementById('videoElement') as HTMLVideoElement;
+
         this.canvasElement = document.getElementById('canvasElement') as HTMLCanvasElement;
         this.canvasContext = this.canvasElement.getContext('2d')!;
+
         this.toggleButton = document.getElementById('toggleButton') as HTMLButtonElement;
         this.grayscaleButton = document.getElementById('grayscaleButton') as HTMLButtonElement;
 
@@ -53,15 +55,16 @@ class CameraController {
 
             this.videoElement.srcObject = this.stream;
 
-            // Set canvas dimensions to match video
             this.videoElement.onloadedmetadata = () => {
                 this.canvasElement.width = this.videoElement.videoWidth;
                 this.canvasElement.height = this.videoElement.videoHeight;
+
                 this.grayscaleFilter = new GrayscaleFilter(
                     this.canvasContext,
                     this.canvasElement.width,
                     this.canvasElement.height
                 );
+
                 this.startVideoProcessing();
             };
         } catch (error) {
