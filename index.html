@@ -10,15 +10,28 @@
             margin: 0 auto;
             padding: 20px;
         }
+
         video {
             width: 100%;
             max-width: 640px;
             border: 1px solid #ccc;
             border-radius: 4px;
         }
+
+        canvas {
+            width: 100%;
+            max-width: 640px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #f5f5f5;
+        }
+
         .controls {
             margin-top: 20px;
+            display: flex;
+            gap: 10px;
         }
+
         button {
             padding: 10px 20px;
             cursor: pointer;
@@ -28,11 +41,13 @@
 <body>
     <div class="container">
         <h1>WebRTC Camera Access</h1>
-        <video id="videoElement" autoplay playsinline></video>
+        <video id="videoElement" autoplay playsinline style="display: none;"></video>
+        <canvas id="canvasElement"></canvas>
         <div class="controls">
             <button id="toggleButton">Start Camera</button>
+            <button id="grayscaleButton" disabled>Enable Grayscale</button>
         </div>
     </div>
-    <script src="dist/camera.js"></script>
+    <script type="module" src="/src/camera.ts"></script>
 </body>
 </html>
