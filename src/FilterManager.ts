@@ -21,11 +21,11 @@ export class FilterManager {
         blur: null,
         invert: null
     };
-    private buttons!: {
-        grayscale: HTMLButtonElement;
-        sepia: HTMLButtonElement;
-        blur: HTMLButtonElement;
-        invert: HTMLButtonElement;
+    private checkboxes!: {
+        grayscale: HTMLInputElement;
+        sepia: HTMLInputElement;
+        blur: HTMLInputElement;
+        invert: HTMLInputElement;
     };
 
     constructor(canvasContext: CanvasRenderingContext2D, width: number, height: number) {
@@ -33,7 +33,7 @@ export class FilterManager {
         this.width = width;
         this.height = height;
         this.initializeFilters();
-        this.initializeButtons();
+        this.initializeCheckboxes();
         this.initializeEventListeners();
     }
 
@@ -44,34 +44,36 @@ export class FilterManager {
         this.filters.invert = new InvertFilter(this.canvasContext, this.width, this.height);
     }
 
-    private initializeButtons(): void {
-        this.buttons = {
-            grayscale: document.getElementById('grayscaleButton') as HTMLButtonElement,
-            sepia: document.getElementById('sepiaButton') as HTMLButtonElement,
-            blur: document.getElementById('blurButton') as HTMLButtonElement,
-            invert: document.getElementById('invertButton') as HTMLButtonElement
+    private initializeCheckboxes(): void {
+        this.checkboxes = {
+            grayscale: document.getElementById('grayscaleButton') as HTMLInputElement,
+            sepia: document.getElementById('sepiaButton') as HTMLInputElement,
+            blur: document.getElementById('blurButton') as HTMLInputElement,
+            invert: document.getElementById('invertButton') as HTMLInputElement
         };
     }
 
     private initializeEventListeners(): void {
-        Object.keys(this.buttons).forEach(filterType => {
-            this.buttons[filterType as FilterType].addEventListener('click', () => {
-                this.handleFilterToggle(filterType as FilterType);
+        Object.keys(this.checkboxes).forEach(filterType => {
+            const checkbox = this.checkboxes[filterType as FilterType];
+            checkbox.addEventListener('change', () => {
+                if (checkbox.checked) {
+                    this.activeFilters.add(filterType as FilterType);
+                } else {
+                    this.activeFilters.delete(filterType as FilterType);
+                }
             });
         });
-    }
-
-    private handleFilterToggle(filterType: FilterType): void {
-        const isActive = this.toggleFilter(filterType);
-        this.buttons[filterType].textContent = isActive ? `Disable ${filterType}` : `Enable ${filterType}`;
     }
 
     public toggleFilter(filterType: FilterType): boolean {
         if (this.activeFilters.has(filterType)) {
             this.activeFilters.delete(filterType);
+            this.checkboxes[filterType].checked = false;
             return false;
         } else {
             this.activeFilters.add(filterType);
+            this.checkboxes[filterType].checked = true;
             return true;
         }
     }
@@ -90,21 +92,21 @@ export class FilterManager {
     }
 
     public enableAllButtons(): void {
-        Object.values(this.buttons).forEach(button => {
-            button.disabled = false;
+        Object.values(this.checkboxes).forEach(checkbox => {
+            checkbox.disabled = false;
         });
     }
 
     public disableAllButtons(): void {
-        Object.values(this.buttons).forEach(button => {
-            button.disabled = true;
+        Object.values(this.checkboxes).forEach(checkbox => {
+            checkbox.disabled = true;
         });
     }
 
     public clearFilters(): void {
         this.activeFilters.clear();
-        Object.entries(this.buttons).forEach(([filterType, button]) => {
-            button.textContent = `Enable ${filterType}`;
+        Object.values(this.checkboxes).forEach(checkbox => {
+            checkbox.checked = false;
         });
     }
 
