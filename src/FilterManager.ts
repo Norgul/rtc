@@ -28,20 +28,31 @@ export class FilterManager {
         invert: HTMLInputElement;
     };
 
+    // Using temp canvas so we can make filters additive
+    private tempCanvas: HTMLCanvasElement;
+    private tempContext: CanvasRenderingContext2D;
+
     constructor(canvasContext: CanvasRenderingContext2D, width: number, height: number) {
         this.canvasContext = canvasContext;
         this.width = width;
         this.height = height;
+
+        // Create temporary canvas for filter operations
+        this.tempCanvas = document.createElement('canvas');
+        this.tempCanvas.width = width;
+        this.tempCanvas.height = height;
+        this.tempContext = this.tempCanvas.getContext('2d')!;
+
         this.initializeFilters();
         this.initializeCheckboxes();
         this.initializeEventListeners();
     }
 
     private initializeFilters(): void {
-        this.filters.grayscale = new GrayscaleFilter(this.canvasContext, this.width, this.height);
-        this.filters.sepia = new SepiaFilter(this.canvasContext, this.width, this.height);
-        this.filters.blur = new BlurFilter(this.canvasContext, this.width, this.height);
-        this.filters.invert = new InvertFilter(this.canvasContext, this.width, this.height);
+        this.filters.grayscale = new GrayscaleFilter(this.tempContext, this.width, this.height);
+        this.filters.sepia = new SepiaFilter(this.tempContext, this.width, this.height);
+        this.filters.blur = new BlurFilter(this.tempContext, this.width, this.height);
+        this.filters.invert = new InvertFilter(this.tempContext, this.width, this.height);
     }
 
     private initializeCheckboxes(): void {
@@ -66,29 +77,21 @@ export class FilterManager {
         });
     }
 
-    public toggleFilter(filterType: FilterType): boolean {
-        if (this.activeFilters.has(filterType)) {
-            this.activeFilters.delete(filterType);
-            this.checkboxes[filterType].checked = false;
-            return false;
-        } else {
-            this.activeFilters.add(filterType);
-            this.checkboxes[filterType].checked = true;
-            return true;
-        }
-    }
-
-    public isFilterActive(filterType: FilterType): boolean {
-        return this.activeFilters.has(filterType);
-    }
-
     public applyFilters(): void {
+        if (this.activeFilters.size === 0) {
+            return;
+        }
+
+        this.tempContext.drawImage(this.canvasContext.canvas, 0, 0);
+
         this.activeFilters.forEach(filterType => {
             const filter = this.filters[filterType];
             if (filter) {
                 filter.apply();
             }
         });
+
+        this.canvasContext.drawImage(this.tempCanvas, 0, 0);
     }
 
     public enableAllButtons(): void {
