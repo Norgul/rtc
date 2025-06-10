@@ -4,9 +4,8 @@ class CameraController {
     private videoElement: HTMLVideoElement;
     private canvasElement: HTMLCanvasElement;
     private canvasContext: CanvasRenderingContext2D;
-    private toggleButton: HTMLButtonElement;
     private stream: MediaStream | null = null;
-    private isCameraActive: boolean = false;
+    private isCameraActive: boolean = true;
     private animationFrameId: number | null = null;
     private filterManager: FilterManager | null = null;
 
@@ -14,23 +13,7 @@ class CameraController {
         this.videoElement = document.getElementById('videoElement') as HTMLVideoElement;
         this.canvasElement = document.getElementById('canvasElement') as HTMLCanvasElement;
         this.canvasContext = this.canvasElement.getContext('2d', {willReadFrequently: true})!;
-        this.toggleButton = document.getElementById('toggleButton') as HTMLButtonElement;
-        this.initializeEventListeners();
-    }
-
-    private initializeEventListeners(): void {
-        this.toggleButton.addEventListener('click', () => this.toggleCamera());
-    }
-
-    private async toggleCamera(): Promise<void> {
-        if (this.isCameraActive) {
-            this.stopCamera();
-        } else {
-            await this.startCamera();
-        }
-
-        this.isCameraActive = !this.isCameraActive;
-        this.toggleButton.textContent = this.isCameraActive ? 'Stop Camera' : 'Start Camera';
+        this.startCamera();
     }
 
     private async startCamera(): Promise<void> {
