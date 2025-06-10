@@ -4,9 +4,6 @@ class CameraController {
     private videoElement: HTMLVideoElement;
     private canvasElement: HTMLCanvasElement;
     private canvasContext: CanvasRenderingContext2D;
-    private stream: MediaStream | null = null;
-    private isCameraActive: boolean = true;
-    private animationFrameId: number | null = null;
     private filterManager: FilterManager | null = null;
 
     constructor() {
@@ -18,14 +15,12 @@ class CameraController {
 
     private async startCamera(): Promise<void> {
         try {
-            this.stream = await navigator.mediaDevices.getUserMedia({
+            this.videoElement.srcObject = await navigator.mediaDevices.getUserMedia({
                 video: {
                     width: {ideal: 1280},
                     height: {ideal: 720}
                 }
             });
-
-            this.videoElement.srcObject = this.stream;
 
             this.videoElement.onloadedmetadata = () => {
                 this.canvasElement.width = this.videoElement.videoWidth;
@@ -42,39 +37,39 @@ class CameraController {
             };
         } catch (error) {
             console.error('Error accessing camera:', error);
-            alert('Error accessing camera. Please make sure you have granted camera permissions.');
-        }
-    }
 
-    private stopCamera(): void {
-        if (this.stream) {
-            this.stream.getTracks().forEach(track => track.stop());
-            this.videoElement.srcObject = null;
-            this.stream = null;
-
-            if (this.filterManager) {
-                this.filterManager.destroy();
-                this.filterManager = null;
+            let errorMessage = 'Error accessing camera. ';
+            if (error instanceof DOMException) {
+                switch (error.name) {
+                    case 'NotAllowedError':
+                        errorMessage += 'Camera access was denied. Please grant camera permissions and try again.';
+                        break;
+                    case 'NotFoundError':
+                        errorMessage += 'No camera device found. Please connect a camera and try again.';
+                        break;
+                    case 'NotReadableError':
+                        errorMessage += 'Camera is already in use by another application. Please close other applications using the camera and try again.';
+                        break;
+                    default:
+                        errorMessage += 'Please make sure you have granted camera permissions.';
+                }
             }
 
-            if (this.animationFrameId) {
-                cancelAnimationFrame(this.animationFrameId);
-                this.animationFrameId = null;
+            if (confirm(errorMessage + '\n\nWould you like to try again?')) {
+                await this.startCamera();
             }
         }
     }
 
     private startVideoProcessing(): void {
         const processFrame = () => {
-            if (!this.isCameraActive) return;
-
             this.canvasContext.drawImage(this.videoElement, 0, 0);
 
             if (this.filterManager) {
                 this.filterManager.applyFilters();
             }
 
-            this.animationFrameId = requestAnimationFrame(processFrame);
+            requestAnimationFrame(processFrame);
         };
 
         processFrame();
