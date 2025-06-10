@@ -5,11 +5,13 @@ with possibility of applying filters to the input stream.
 
 ## Setup
 
-To run the project, you need to execute these commands:
+To run the project in dev mode, you need to execute these commands:
 
 - ``npm i``
 - ``npm run build``
 - ``npm run dev``
+
+Otherwise, just open ``dist/index.html`` in the browser.
 
 ## Technical decisions & architecture
 
