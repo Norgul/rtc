@@ -1,5 +1,10 @@
 {
   "devDependencies": {
+    "lite-server": "^2.6.1",
     "typescript": "^5.8.3"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "lite-server"
   }
 }
