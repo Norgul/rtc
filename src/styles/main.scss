@@ -1,0 +1,130 @@
+@use "sass:map";
+
+$colors: (
+        'primary': #4CAF50,
+        'background': #f5f5f5,
+        'text': #333,
+        'text-light': #666,
+        'border': #ccc,
+        'white': #fff
+);
+
+$spacing: (
+        'xs': 5px,
+        'sm': 10px,
+        'md': 15px,
+        'lg': 20px,
+        'xl': 30px
+);
+
+$border-radius: 4px;
+$transition-duration: 0.3s;
+$box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+@mixin smooth-transition {
+  transition: all $transition-duration ease-in-out;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  @include flex-column;
+  align-items: center;
+  background-color: map.get($colors, 'background');
+}
+
+.container {
+  width: 100%;
+  max-width: 640px;
+  padding: map.get($spacing, 'lg');
+  @include flex-column;
+  align-items: center;
+  gap: map.get($spacing, 'lg');
+}
+
+h1 {
+  text-align: center;
+  color: map.get($colors, 'text');
+  margin-bottom: map.get($spacing, 'lg');
+}
+
+h2 {
+  text-align: center;
+  color: map.get($colors, 'text');
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.video-container {
+  width: 100%;
+  max-width: 640px;
+  @include flex-center;
+}
+
+video, canvas {
+  width: 100%;
+  max-width: 640px;
+  border: 1px solid map.get($colors, 'border');
+  border-radius: $border-radius;
+  @include smooth-transition;
+}
+
+canvas {
+  background-color: map.get($colors, 'white');
+}
+
+.controls {
+  width: 100%;
+  max-width: 640px;
+  @include flex-column;
+  align-items: center;
+  gap: map.get($spacing, 'md');
+  padding: map.get($spacing, 'lg');
+  background-color: map.get($colors, 'white');
+  border-radius: $border-radius;
+  box-shadow: $box-shadow;
+}
+
+.filters-wrapper {
+  width: 100%;
+}
+
+.intensity-container {
+  @include flex-column;
+  gap: map.get($spacing, 'md');
+  width: 100%;
+}
+
+.intensity-option {
+  @include flex-column;
+  gap: map.get($spacing, 'xs');
+  width: 100%;
+
+  label {
+    font-size: 14px;
+    color: map.get($colors, 'text-light');
+  }
+
+  input[type="range"] {
+    width: 100%;
+    cursor: pointer;
+    height: 6px;
+    -webkit-appearance: none;
+    background: #ddd;
+    border-radius: 3px;
+    outline: none;
+    @include smooth-transition;
+  }
+}
