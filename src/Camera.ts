@@ -5,12 +5,45 @@ class CameraController {
     private canvasElement: HTMLCanvasElement;
     private canvasContext: CanvasRenderingContext2D;
     private filterManager: FilterManager | null = null;
+    private captureButton: HTMLButtonElement;
 
     constructor() {
         this.videoElement = document.getElementById('videoElement') as HTMLVideoElement;
+
         this.canvasElement = document.getElementById('canvasElement') as HTMLCanvasElement;
         this.canvasContext = this.canvasElement.getContext('2d', {willReadFrequently: true})!;
+
+        this.captureButton = document.getElementById('captureButton') as HTMLButtonElement;
+        this.captureButton.addEventListener('click', () => this.capturePhoto());
+
         this.startCamera();
+    }
+
+    private capturePhoto(): void {
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = this.canvasElement.width;
+        tempCanvas.height = this.canvasElement.height;
+        const tempContext = tempCanvas.getContext('2d')!;
+
+        tempContext.drawImage(this.canvasElement, 0, 0);
+
+        tempCanvas.toBlob((blob) => {
+            if (!blob) {
+                console.error('Failed to create image blob');
+                return;
+            }
+
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `photo_${new Date().toISOString().replace(/[:.]/g, '-')}.png`;
+
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            URL.revokeObjectURL(url);
+        }, 'image/png');
     }
 
     private async startCamera(): Promise<void> {
